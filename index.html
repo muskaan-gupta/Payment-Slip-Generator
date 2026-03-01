@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Slip Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Payment Slip Generator</h1>
+            <p>Generate professional payment slips instantly</p>
+        </header>
+
+        <div class="main-content">
+            <!-- LEFT SIDE: Input Form -->
+            <div class="form-section">
+                <h2>Fill Details</h2>
+                
+                <!-- Fixed Business Details -->
+                <div class="form-group">
+                    <h3>Business Information (Fixed)</h3>
+                    <label for="shopName">Shop Name</label>
+                    <input type="text" id="shopName" value="ADA AROMAS OPC PVT LTD" placeholder="Enter shop name">
+                    
+                    <label for="gstNumber">GST Number</label>
+                    <input type="text" id="gstNumber" value="06ABDCA3412B1ZH" placeholder="Enter GST number">
+                    
+                    <label for="shopAddress">Shop Address</label>
+                    <textarea id="shopAddress" rows="2" placeholder="Enter shop address">S.C.O. 6, 2nd Floor, Swastik Vihar, Mansa Devi Complex, Sector 5 Panchkula Haryana: 134114</textarea>
+                    
+                    <label for="shopPhone">Contact Number</label>
+                    <input type="text" id="shopPhone" value="+91 9876753198" placeholder="Enter contact number">
+                    
+                    <label for="shopEmail">Email Address</label>
+                    <input type="email" id="shopEmail" value="admin@adaaromas.co.in" placeholder="Enter email address">
+                </div>
+
+                <!-- Variable Customer & Order Details -->
+                <div class="form-group">
+                    <h3>Order Details</h3>
+                    <label for="orderId">Order ID</label>
+                    <input type="text" id="orderId" placeholder="e.g., ORD-2024-001" required>
+                    
+                    <label for="orderDate">Order Date</label>
+                    <input type="date" id="orderDate" required>
+                    
+                    <label for="customerName">Customer Name</label>
+                    <input type="text" id="customerName" placeholder="Enter customer name" required>
+                    
+                    <label for="customerPhone">Customer Phone</label>
+                    <input type="text" id="customerPhone" placeholder="Enter customer phone">
+                    
+                    <label for="customerAddress">Customer Address</label>
+                    <textarea id="customerAddress" rows="2" placeholder="Enter customer address"></textarea>
+                </div>
+
+                <!-- Product Details -->
+                <div class="form-group">
+                    <h3>Product Information</h3>
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" placeholder="Enter product name" required>
+                    
+                    <label for="quantity">Quantity</label>
+                    <input type="number" id="quantity" value="1" min="1" required>
+                    
+                    <label for="unitPrice">Unit Price (₹)</label>
+                    <input type="number" id="unitPrice" placeholder="Enter unit price" step="0.01" min="0" required>
+                    
+                    <label for="discount">Discount (%)</label>
+                    <input type="number" id="discount" value="0" min="0" max="100" step="0.01">
+                </div>
+
+                <!-- Tax Selection -->
+                <div class="form-group">
+                    <h3>Tax & Payment</h3>
+                    <label for="taxType">Tax Type</label>
+                    <select id="taxType">
+                        <option value="igst">IGST 18% (Interstate)</option>
+                        <option value="cgst_sgst">CGST 9% + SGST 9% (Intrastate)</option>
+                    </select>
+                    
+                    <label for="paymentMethod">Payment Method</label>
+                    <select id="paymentMethod">
+                        <option value="Cash">Cash on Delivery</option>
+                        <option value="UPI">Pre Paid</option>
+                        
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Additional Notes (Optional)</label>
+                    <textarea id="notes" rows="3" placeholder="Enter any additional notes"></textarea>
+                </div>
+
+                <button class="btn-generate" onclick="updatePreview()">Update Preview</button>
+            </div>
+
+            <!-- RIGHT SIDE: Live Preview -->
+            <div class="preview-section">
+                <h2>Live Preview</h2>
+                
+                <div id="paymentSlip" class="payment-slip">
+                    <!-- Header -->
+                    <div class="slip-header">
+                        <h1 class="shop-name" id="previewShopName">ADA AROMAS OPC PVT LTD</h1>
+                        <p class="shop-address" id="previewShopAddress">S.C.O. 6, 2nd Floor, Swastik Vihar, Mansa Devi Complex, Sector 5 Panchkula Haryana: 134114</p>
+                        <p class="shop-contact">
+                            Phone: <span id="previewShopPhone">+91 9876753198</span> | Email: <span id="previewEmail">admin@adaaromas.co.in</span>
+                        </p>
+                        <p class="gst-line"><strong>GST No: <span id="previewGST">06ABDCA3412B1ZH</span></strong></p>
+                    </div>
+
+                    <hr class="divider">
+
+                    <h2 class="invoice-title" style="color: #0a5f0a;">TAX INVOICE</h2>
+
+                    <!-- Bill To & Order Info -->
+                    <div class="slip-info">
+                        <div class="bill-to">
+                            <p class="label">Bill To:</p>
+                            <p class="customer-name" id="previewCustomerName">Customer Name</p>
+                            <p id="previewCustomerPhone">Phone</p>
+                            <p id="previewCustomerAddress">Address</p>
+                        </div>
+                        <div class="order-info">
+                            <p><strong>Order ID:</strong> <span id="previewOrderId">ORD-177230914810</span></p>
+                            <p><strong>Date:</strong> <span id="previewDate">2026-02-28</span></p>
+                            <p><strong>Payment:</strong> <span id="previewPaymentMethod">Cash on Delivery</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Product Details Table -->
+                    <table class="product-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Qty</th>
+                                <th>Rate</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="previewProductName">Product Name</td>
+                                <td id="previewQuantity">1</td>
+                                <td>₹<span id="previewUnitPrice">0.00</span></td>
+                                <td>₹<span id="previewProductValue">0.00</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Calculation Section -->
+                    <div class="calculations">
+                        <div class="calc-row">
+                            <span>Subtotal:</span>
+                            <span>₹<span id="previewSubtotal">0.00</span></span>
+                        </div>
+                        <div class="calc-row discount-row" id="discountRow" style="display: none;">
+                            <span>Discount (<span id="previewDiscountPercent">0</span>%):</span>
+                            <span>-₹<span id="previewDiscountAmount">0.00</span></span>
+                        </div>
+                        <div class="calc-row">
+                            <span>Taxable Amount:</span>
+                            <span>₹<span id="previewAfterDiscount">0.00</span></span>
+                        </div>
+                        
+                        <!-- Tax Breakdown -->
+                        <div class="calc-row">
+                            <span id="taxLabel1">IGST (18%):</span>
+                            <span>₹<span id="taxValue1">0.00</span></span>
+                        </div>
+                        <div class="calc-row" id="taxRow2" style="display: none;">
+                            <span id="taxLabel2">SGST (9%):</span>
+                            <span>₹<span id="taxValue2">0.00</span></span>
+                        </div>
+
+                        <hr class="divider">
+
+                        <div class="calc-row total-row">
+                            <span><strong>Total Amount:</strong></span>
+                            <span><strong>₹<span id="previewTotalAmount">0.00</span></strong></span>
+                        </div>
+                    </div>
+
+                    <hr class="divider">
+
+                    <!-- Terms & Conditions -->
+                    <div class="terms-section">
+                        <p class="terms-title"><strong>Terms & Conditions:</strong></p>
+                        <ol style="color: #0a5f0a; font-weight: 600; font-size: small;">
+                            
+                            <li>NO Extra Charges for COD !</li>
+                            <li>NO Extra Charges for Platform Fee !</li>
+                            <li>NO Extra Charges for Packaging though <span style="color: red;">GIFT PACKAGING</span> Attracts an <span style="color: red;">ADDITIONAL Cost of Rs. 100</span> per Package !!</li>
+                            <li style="color: black;">Orders once PLACED are Expected to get Shipped within 2 Working Days !!</li>
+                            <li style="color: black;">Orders once Shipped are Expected to get DELIVERED within 3-4 working days !!</li>
+                            <li style="color: black;">A Separate Billing Info has already been shared at your Email id for your kind perusal !!</li>
+                        </ol>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="notes-section" id="notesSection" style="display: none;">
+                        <p><strong>Additional Notes:</strong></p>
+                        <p id="previewNotes"></p>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="slip-footer">
+                        <div class="signature">
+                            <p>Authorized Signature</p>
+                        </div>
+                        <div class="qr-code">
+                            <img src="qr-scanner.jpeg" alt="UPI QR Code" onerror="this.style.display='none'">
+                            <p>SCAN & PAY WITH ANY UPI APP</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-print" onclick="printSlip()">🖨️ Print</button>
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include required libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
