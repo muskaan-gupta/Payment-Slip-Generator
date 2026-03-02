@@ -1,8 +1,15 @@
+// Products array to store multiple products
+let products = [];
+let productIdCounter = 0;
+
 // Initialize with current date
 document.addEventListener('DOMContentLoaded', function() {
     // Set today's date
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('orderDate').value = today;
+    
+    // Add first product by default
+    addProduct();
     
     // Add real-time update listeners
     addRealtimeListeners();
@@ -13,11 +20,105 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Add real-time listeners to all input fields
 function addRealtimeListeners() {
-    const inputs = document.querySelectorAll('input, select, textarea');
+    const inputs = document.querySelectorAll('input:not([data-product]), select:not([data-product]), textarea');
     inputs.forEach(input => {
         input.addEventListener('input', updatePreview);
         input.addEventListener('change', updatePreview);
     });
+    
+    // Add validation for customer name (only letters and spaces)
+    const customerNameInput = document.getElementById('customerName');
+    customerNameInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^A-Za-z\s]/g, '');
+    });
+    
+    // Add validation for customer phone (only numbers and basic phone characters)
+    const customerPhoneInput = document.getElementById('customerPhone');
+    customerPhoneInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9+\-\s()]/g, '');
+    });
+}
+
+// Add a new product
+function addProduct() {
+    const productId = productIdCounter++;
+    products.push({ id: productId, name: '', quantity: 1, price: 0 });
+    
+    const container = document.getElementById('productsContainer');
+    const productDiv = document.createElement('div');
+    productDiv.className = 'product-item';
+    productDiv.id = `product-${productId}`;
+    
+    productDiv.innerHTML = `
+        <div class="product-header">
+            <strong>Product ${products.length}</strong>
+            <button type="button" class="btn-remove-product" onclick="removeProduct(${productId})">Remove</button>
+        </div>
+        <label>Product Name</label>
+        <input type="text" data-product="${productId}" data-field="name" placeholder="Enter product name" required>
+        
+        <label>Quantity</label>
+        <input type="number" data-product="${productId}" data-field="quantity" value="1" min="1" required>
+        
+        <label>Unit Price (₹)</label>
+        <input type="number" data-product="${productId}" data-field="price" placeholder="Enter unit price" step="0.01" min="0" required>
+    `;
+    
+    container.appendChild(productDiv);
+    
+    // Add event listeners to the new product inputs
+    productDiv.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', function() {
+            updateProductData(productId, input.dataset.field, input.value);
+        });
+    });
+    
+    updatePreview();
+}
+
+// Remove a product
+function removeProduct(productId) {
+    if (products.length <= 1) {
+        alert('At least one product is required!');
+        return;
+    }
+    
+    // Remove from array
+    products = products.filter(p => p.id !== productId);
+    
+    // Remove from DOM
+    const productDiv = document.getElementById(`product-${productId}`);
+    productDiv.remove();
+    
+    // Update product numbers
+    updateProductNumbers();
+    updatePreview();
+}
+
+// Update product numbers in the UI
+function updateProductNumbers() {
+    const productItems = document.querySelectorAll('.product-item');
+    productItems.forEach((item, index) => {
+        const header = item.querySelector('.product-header strong');
+        if (header) {
+            header.textContent = `Product ${index + 1}`;
+        }
+    });
+}
+
+// Update product data in array
+function updateProductData(productId, field, value) {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+        if (field === 'name') {
+            product.name = value;
+        } else if (field === 'quantity') {
+            product.quantity = parseFloat(value) || 0;
+        } else if (field === 'price') {
+            product.price = parseFloat(value) || 0;
+        }
+        updatePreview();
+    }
 }
 
 // Main function to update preview
@@ -35,11 +136,7 @@ function updatePreview() {
     const customerPhone = document.getElementById('customerPhone').value || 'Phone';
     const customerAddress = document.getElementById('customerAddress').value || 'Address';
     
-    const productName = document.getElementById('productName').value || 'Product Name';
-    const quantity = parseFloat(document.getElementById('quantity').value) || 0;
-    const unitPrice = parseFloat(document.getElementById('unitPrice').value) || 0;
     const discount = parseFloat(document.getElementById('discount').value) || 0;
-    
     const taxType = document.getElementById('taxType').value;
     const paymentMethod = document.getElementById('paymentMethod').value;
     const notes = document.getElementById('notes').value;
@@ -67,13 +164,27 @@ function updatePreview() {
     document.getElementById('previewCustomerPhone').textContent = customerPhone;
     document.getElementById('previewCustomerAddress').textContent = customerAddress;
     
-    // Update product info
-    document.getElementById('previewProductName').textContent = productName;
-    document.getElementById('previewQuantity').textContent = quantity;
-    document.getElementById('previewUnitPrice').textContent = unitPrice.toFixed(2);
+    // Update products table
+    const tableBody = document.getElementById('previewProductsTable');
+    tableBody.innerHTML = '';
     
-    // Calculate amounts
-    const subtotal = quantity * unitPrice;
+    let subtotal = 0;
+    
+    products.forEach(product => {
+        const productTotal = product.quantity * product.price;
+        subtotal += productTotal;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${product.name || 'Product Name'}</td>
+            <td>${product.quantity}</td>
+            <td>₹${product.price.toFixed(2)}</td>
+            <td>₹${productTotal.toFixed(2)}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+    
+    // Calculate discount
     const discountAmount = (subtotal * discount) / 100;
     const afterDiscount = subtotal - discountAmount;
     
@@ -97,7 +208,6 @@ function updatePreview() {
     const totalAmount = afterDiscount + totalTax;
     
     // Update calculations in preview
-    document.getElementById('previewProductValue').textContent = subtotal.toFixed(2);
     document.getElementById('previewSubtotal').textContent = subtotal.toFixed(2);
     document.getElementById('previewDiscountPercent').textContent = discount;
     document.getElementById('previewDiscountAmount').textContent = discountAmount.toFixed(2);
